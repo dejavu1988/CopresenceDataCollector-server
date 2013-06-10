@@ -3,12 +3,15 @@ package fi.helsinki.cs.server;
 import java.net.InetAddress;
 import java.net.Socket;
 
+
 public class Device {
+	
 	private String uuid;
 	private String name;
 	private InetAddress ipAddress;
 	private int port;
 	private Socket socket;
+	private int status;
 	
 	public Device(){
 		this.uuid = "";
@@ -16,8 +19,16 @@ public class Device {
 		ipAddress = null;
 		this.port = -1;
 		this.socket = null;
+		this.status = 0;
 	}
 	
+	public int getStatus(){
+		return this.status;
+	}
+	
+	public void setStatus(int sta){
+		this.status = sta;
+	}
 	public InetAddress getIpAddress(){
 		return this.ipAddress;
 	}
