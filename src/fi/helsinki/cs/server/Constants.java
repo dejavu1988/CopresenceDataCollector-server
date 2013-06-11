@@ -18,7 +18,7 @@ public final class Constants {
     public static final int PORT = 8887;
     
     // Sqlite database
-    public static final String DB_NAME =  "index.db";
+    public static final String DB_LOCAL =  "jdbc:sqlite:index.db";
     public static final String DB_MEM =  "jdbc:sqlite:";
 
     // C/S msg code    
@@ -33,7 +33,8 @@ public final class Constants {
     public static final int REQ_TASK = 9;
     public static final int ACK_TASK = 10;
     public static final int SEND = 11;
-    public static final int UNBIND = 12;
-    public static final int UPLOAD = 13;
-    public static final int EXIT = 14;
+    public static final int REQ_UNBIND = 12;
+    public static final int ACK_UNBIND = 13;
+    public static final int UPLOAD = 14;
+    public static final int EXIT = 15;
 }

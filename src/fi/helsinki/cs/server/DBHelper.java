@@ -17,8 +17,13 @@ public class DBHelper {
 		this.connection = null;
 	}
 	
-	public void prepare() throws SQLException{
+	public void prepareMem() throws SQLException{
 		connection = DriverManager.getConnection(Constants.DB_MEM);
+		statement = connection.createStatement();
+	}
+	
+	public void prepare() throws SQLException{
+		connection = DriverManager.getConnection(Constants.DB_LOCAL);
 		statement = connection.createStatement();
 	}
 	
@@ -41,9 +46,19 @@ public class DBHelper {
 		}
 	}
 	
-	public void terminate(){
+	public void terminateMem(){
 		try{
 			backupFromMem();
+			if(connection != null)
+				connection.close();
+		}catch(SQLException e){
+			System.err.println(e.getMessage());
+		}
+	}
+	
+	public void terminate(){
+		try{
+			
 			if(connection != null)
 				connection.close();
 		}catch(SQLException e){
@@ -67,9 +82,18 @@ public class DBHelper {
 	// Register device on first connection
 	public void registerDevice(Device device){
 		try{
-			String sql = "insert into Device(Uuid, Addr, Port, Status) values('" + device.getUuid() + "', '"
-					+ device.getIpAddress() + "', " + String.valueOf(device.getPort()) + ", "
+			String sql = "insert into Device(Uuid, Addr, Port, Status) values('" + device.getUuid() + "', '" + device.getIpAddress().getHostAddress() + "', " + String.valueOf(device.getPort()) + ", "
 					+ String.valueOf(device.getStatus()) + ")";
+			System.out.println(sql);
+			statement.executeUpdate(sql);
+		}catch(SQLException e){
+			System.err.println(e.getMessage());
+		}
+	}
+	
+	public void updateDeviceAddr(Device device){
+		try{
+			String sql = "update Device set Addr='" + device.getIpAddress().getHostAddress() + "' and Port=" + device.getPort() + " where Uuid='" + device.getUuid() + "'";
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
@@ -95,17 +119,17 @@ public class DBHelper {
 		}
 	}
 	
-	public String checkBind(String uuid){
+	public Boolean isBind(String uuid){
 		try{
-			String sql = "select * from Bind where Uuid1 = " + uuid + " or Uuid2 = " + uuid;
+			String sql = "select * from Bind where Uuid1='" + uuid + "' or Uuid2='" + uuid + "'";
 			ResultSet rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return (rs.getString("Uuid1")==uuid)?rs.getString("Uuid2"):rs.getString("Uuid1");
+				return true;
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
 		}
-		return null;
+		return false;
 	}
 	
 	// First add one device to bind
@@ -121,9 +145,10 @@ public class DBHelper {
 	}
 	
 	// check QNum ok
-	public boolean isQnumFit(String uuid1, String qnum){
+	public boolean isQnumFit(int qnum){
 		try{
-			String sql = "select * from Bind where Uuid1='" + uuid1 + "' and Uuid2='' and QNum=" + qnum;
+			String sql = "select * from Bind where Uuid1!='' and Uuid2='' and QNum=" + String.valueOf(qnum);
+			//System.out.println(sql);
 			ResultSet rs = statement.executeQuery(sql);
 			if(rs.next()){
 				return true;
@@ -135,7 +160,7 @@ public class DBHelper {
 	}
 	
 	// registry bind
-	public void updateBind(String uuid, String qnum){
+	public void updateBind(String uuid, int qnum){
 		try{
 			String sql = "update Bind set Uuid2='" + uuid + "' where Uuid2='' and QNum=" + qnum;
 			statement.executeUpdate(sql);
@@ -184,13 +209,11 @@ public class DBHelper {
 	
 	public void registerObserv(Observ ob){
 		try{
-			if(ob.isPrepared()){
-				String sql = "insert into Observ(Uuid1, Uuid2, TS_S, TS_D, MS, GT) values ('" 
-						+ ob.getUuid1() + "', '" + ob.getUuid2() + "', " + String.valueOf(ob.getTS_S())
-						+ ", " + String.valueOf(ob.getTS_D()) + ", '" + ob.getModalityS() 
-						+ "', " + String.valueOf(ob.getGt()) + ")";
-				statement.executeUpdate(sql);
-			}
+			String sql = "insert into Observ(Uuid1, Uuid2, TS_S, TS_D, MS, GT) values ('" 
+					+ ob.getUuid1() + "', '" + ob.getUuid2() + "', " + String.valueOf(ob.getTS_S())
+					+ ", " + String.valueOf(ob.getTS_D()) + ", '" + ob.getModalityS() 
+					+ "', " + String.valueOf(ob.getGt()) + ")";
+			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
 		}

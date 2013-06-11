@@ -16,10 +16,19 @@ public class Device {
 	public Device(){
 		this.uuid = "";
 		this.name = "";
-		ipAddress = null;
+		this.ipAddress = null;
 		this.port = -1;
 		this.socket = null;
 		this.status = 0;
+	}
+	
+	public Device(Device device){
+		this.uuid = device.getUuid();
+		this.name = device.getName();
+		this.ipAddress = device.getIpAddress();
+		this.port = device.getPort();
+		this.socket = device.getSocket();
+		this.status = device.getStatus();
 	}
 	
 	public int getStatus(){
