@@ -24,11 +24,12 @@ public class Main {
 	
     private List<Device> dList = new ArrayList<Device>();  
     private static HashMap<String,Device> dMap = new HashMap<String,Device>();
+    private static HashMap<String,Socket> sMap = new HashMap<String,Socket>();
     private ServerSocket serverSocket = null;  
     private ExecutorService mExecutorService = null; //thread pool  
     private Gson gson = new Gson();
     DBHelper db = null;
-
+    private int rn;
     
     public static void main(String[] args) {  
         new Main();  
@@ -42,17 +43,20 @@ public class Main {
             mExecutorService = Executors.newCachedThreadPool();  //create a thread pool  
             System.out.println("Server " + Constants.SERVER_INET + " started at port " + Constants.PORT + ".");  
             //Socket clientSocket = null;  
+            Device device = new Device();
             while(true) {  
             	Socket clientSocket = serverSocket.accept();  //waits for incoming request
             	clientSocket.setKeepAlive(true);
+            	rn = (int)(Math.random()*8847);
                 System.out.println("Client "+ clientSocket.getInetAddress() + ":" + String.valueOf(clientSocket.getPort()) + " connected.");
-                Device device = new Device();	//initiate Device Object
+                	//initiate Device Object
                 device.setIpAddress(clientSocket.getInetAddress());
                 device.setPort(clientSocket.getPort());
                 device.setSocket(clientSocket);
                 //Add client to client set  
-                dList.add(device); 
-                mExecutorService.execute(new ThreadService(device)); //start a new thread to handle the connection  
+                //dList.add(device); 
+                
+                mExecutorService.execute(new ThreadService(new Device(device))); //start a new thread to handle the connection  
             }  
         }catch (Exception e) {  
             e.printStackTrace();  
@@ -67,8 +71,9 @@ public class Main {
         private Type mapType;
         
         public ThreadService(Device device) {  
-        	this.client = new Device(device);
-            this.socket = device.getSocket(); 
+        	this.client = device;
+            this.socket = client.getSocket(); 
+            client.setSocket(socket);
             this.in = null;
             this.msg = "";
             this.mapType = new TypeToken<HashMap<String,String>>(){}.getType();
@@ -104,23 +109,44 @@ public class Main {
                     		System.out.println("ACK_UUID: "+msg);
                     		String uuid = msgObj.get("uuid");
                     		
-                    		int tmpStatus = 0;
+                    		
                     		client.setUuid(uuid);
-                			client.setStatus(Constants.STATUS_BIND_OFF);
-                    		if(-1 == (tmpStatus = db.checkDeviceReg(uuid))){	//new device                    			
+                			//client.setStatus(Constants.STATUS_BIND_OFF);
+                    		if(!db.checkDeviceReg(uuid)){	//new device                    			
                     			db.registerDevice(client);
                     			System.out.println("ACK_UUID: new device");
-                    		}                    		
+                    		}else{
+                    			db.updateDeviceAddr(client);
+                    		}
                     		dMap.put(uuid, client);
-                    		db.updateDeviceAddr(client);
+                    		sMap.put(uuid, socket);
+                    		
                     		System.out.println("ACK_UUID: "+client.getUuid()+client.getIpAddress().getHostAddress());
                     		
-                    		boolean test = db.isBind(uuid); 
-                    		msgObj.clear();                    			
-                        	msgObj.put("id", "UP_BIND");
-                        	msgObj.put("bind", String.valueOf(test));
-                        	String msg = gson.toJson(msgObj);
-                        	this.sendBackMsg(msg);
+                    		boolean test = db.isBind(uuid);
+                    		if(test){
+                    			String aUuid = db.getAUuid(uuid);
+                        		String aName = db.getName(aUuid);
+                        		msgObj.clear();   			
+                            	msgObj.put("id", "UP_BIND");
+                            	msgObj.put("bind", "true");
+                            	msgObj.put("bindId", aUuid);
+                            	msgObj.put("bindName", aName);
+                            	//boolean peerOn = (sMap.get(aUuid)==null)?false:sMap.get(aUuid).isClosed();
+                            	//msgObj.put("peer", String.valueOf(peerOn));
+                            	String msg = gson.toJson(msgObj);
+                            	System.out.println(test);
+                            	System.out.println(aUuid + aName);
+                            	this.sendBackMsg(msg);
+                    		}else{
+                    			msgObj.clear();   			
+                            	msgObj.put("id", "UP_BIND");
+                            	msgObj.put("bind", "false");
+                            	String msg = gson.toJson(msgObj);
+                            	System.out.println(test);                    		
+                            	this.sendBackMsg(msg);
+                    		}                    		
+                    		
                         	
                     	}else if(token.contains("REQ_GETQ")){	//initiate binding
                     		System.out.println("REQ_GETQ: "+msg);
@@ -131,6 +157,7 @@ public class Main {
                     			client.setName(name);
                     			db.updateDeviceName(client);
                     			int qnum = (int)(Math.random()*8847);
+                    			db.cleanBind();
                     			db.registerBind(client, qnum);
                     		
                     			System.out.println("REQ_GETQ: "+client.getUuid()+client.getName()+qnum);
@@ -165,9 +192,9 @@ public class Main {
                     			String aName = db.getName(aUuid);
                     			//Socket so = getSocket(aUuid);
                     			System.out.println("REQ_VALQ:(o) "+aUuid+aName);
-                    			db.updateDeviceStatus(Constants.STATUS_PEER_OFF, aUuid);
-                    			db.updateDeviceStatus(Constants.STATUS_PEER_OFF, uuid);
-                    			client.setStatus(Constants.STATUS_PEER_OFF);
+                    			//db.updateDeviceStatus(Constants.STATUS_PEER_OFF, aUuid);
+                    			//db.updateDeviceStatus(Constants.STATUS_PEER_OFF, uuid);
+                    			//client.setStatus(Constants.STATUS_PEER_OFF);
                     			
                     			dMap.put(uuid, client);
                     			
@@ -186,28 +213,49 @@ public class Main {
                             	this.sendMsg(msg2,aUuid);
                     		}
                     		
-                    	}else if(token.contains("REQ_REACH")){	// request recheability of peer
-                    		System.out.println("REQ_REACH");
-                    		System.out.println(msg);
+                    	}else if(token.contains("REQ_ALIVE")){	// request heartbeat
+                    		System.out.println("REQ_ALIVE: " + msg);
                     		String uuid = msgObj.get("uuid");
-                    		String aUuid = db.getAUuid(uuid);
-                    		InetAddress ip = dMap.get(aUuid).getIpAddress();
-                    		msgObj.clear();                    			
-                        	msgObj.put("id", "ACK_VALQ");
-                    		if(ip.isReachable(1000)){
-                            	msgObj.put("r", "true"); 
-                            	db.updateDeviceStatus(Constants.STATUS_PEER_ON, aUuid);
-                    			db.updateDeviceStatus(Constants.STATUS_PEER_ON, uuid);
-                    			client.setStatus(Constants.STATUS_PEER_ON);
-                    		}else{
-                    			msgObj.put("r", "false"); 
+                    		if(client.getUuid() == ""){
+                    			// similar to ACK_UUID
+                    			
+                    			client.setUuid(uuid);
+                    			if(!db.checkDeviceReg(uuid)){	//new device                    			
+                        			db.registerDevice(client);
+                        			System.out.println("REQ_ALIVE: new connection");
+                        		}else{
+                        			db.updateDeviceAddr(client);
+                        		}
+                        		dMap.put(uuid, client);
+                        		sMap.put(uuid, socket);
                     		}
-                    		String msg = gson.toJson(msgObj);
-                    		this.sendBackMsg(msg);
+                    		
+                    		boolean test = db.isBind(uuid);
+                    		if(test){
+                    			String aUuid = db.getAUuid(uuid);
+                        		String aName = db.getName(aUuid);
+                        		msgObj.clear();   			
+                            	msgObj.put("id", "ACK_ALIVE");
+                            	msgObj.put("bind", "true");
+                            	msgObj.put("bindId", aUuid);
+                            	msgObj.put("bindName", aName);
+                            	//boolean peerOn = (sMap.get(aUuid)==null)?false:sMap.get(aUuid).isClosed();
+                            	//msgObj.put("peer", String.valueOf(peerOn));
+                            	String msg = gson.toJson(msgObj);
+                            	System.out.println(test);
+                            	System.out.println(aUuid + aName);
+                            	this.sendBackMsg(msg);
+                    		}else{
+                    			msgObj.clear();   			
+                            	msgObj.put("id", "ACK_ALIVE");
+                            	msgObj.put("bind", "false");
+                            	String msg = gson.toJson(msgObj);
+                            	System.out.println(test);                    		
+                            	this.sendBackMsg(msg);
+                    		}
                     		
                     	}else if(token.contains("REQ_TASK")){	//start tasks after 5 seconds
-                    		System.out.println("REQ_TASK");
-                    		System.out.println(msg);
+                    		System.out.println("REQ_TASK: " + msg);
                     		String uuid = msgObj.get("uuid");
                     		String gt = msgObj.get("gt");
                     		//String mod = msgObj.get("mod");
@@ -218,19 +266,25 @@ public class Main {
                     		obs.setTS_S();
                     		obs.setGt(Integer.parseInt(gt));
                     		db.registerObserv(obs);	//add observ to database
+                    		System.out.println(dMap.containsKey(aUuid));
+                    		System.out.println(sMap.containsKey(aUuid));
                     		msgObj.clear();                    			
                         	msgObj.put("id", "ACK_TASK");
-                        	msgObj.put("dt", "5000");
+                        	msgObj.put("dt", "0");
                         	msgObj.put("gt", gt);
                         	//msgObj.put("mod", mod);
-                        	String msg1 = gson.toJson(msgObj);                        	
+                        	String msg = gson.toJson(msgObj); 
+                        	sendBackMsg(msg);
+                        	//this.sendBackMsg(msg);
                         	msgObj.clear();                    			
                         	msgObj.put("id", "ACK_TASK");
-                        	msgObj.put("dt", "5000");
+                        	msgObj.put("dt", "0");
+                        	msgObj.put("gt", gt);
                         	//msgObj.put("mod", mod);
                         	String msg2 = gson.toJson(msgObj);
-                        	this.sendMsg(msg1, aUuid);
-                        	this.sendBackMsg(msg2);
+                        	sendMsg(msg2, aUuid);
+                        	
+                        	//this.sendNewMsg(msg2, aUuid);
                     		
                     	}else if(token.contains("REQ_UNBIND")){
                     		System.out.println("REQ_UNBIND" + msg);
@@ -244,8 +298,12 @@ public class Main {
                     			msgObj.put("id", "ACK_UNBIND");
                     			String msg = gson.toJson(msgObj);
                     			this.sendBackMsg(msg);
-                    			if(dMap.containsKey(aUuid)){
-                    				this.sendMsg(msg,aUuid);
+                    			System.out.println(dMap.containsKey(aUuid));
+                    			if(sMap.containsKey(aUuid)){
+                    				msgObj.clear();                    			
+                    				msgObj.put("id", "ACK_UNBIND");
+                    				String msg2 = gson.toJson(msgObj);
+                    					this.sendMsg(msg2,aUuid);
                     			}
                     		}else{
                     			msgObj.clear();                    			
@@ -320,10 +378,25 @@ public class Main {
         //send msg to socket
         public void sendMsg(String msg, String uuid) {  
             System.out.println(msg);             
-            Socket mSocket = dMap.get(uuid).getSocket();
+            //Socket mSocket = dMap.get(uuid).getSocket();
+            Socket mSocket = sMap.get(uuid);
             PrintWriter pout = null;  
             try {  
             	
+                pout = new PrintWriter(new BufferedWriter(  
+                        new OutputStreamWriter(mSocket.getOutputStream())),true);  
+                pout.println(msg);  
+            }catch (IOException e) {  
+                e.printStackTrace();  
+            }             
+        }
+        
+        public void sendNewMsg(String msg, String uuid) {  
+            System.out.println(msg);             
+            
+            PrintWriter pout = null;  
+            try {  
+            	Socket mSocket = new Socket(dMap.get(uuid).getIpAddress(), dMap.get(uuid).getPort());
                 pout = new PrintWriter(new BufferedWriter(  
                         new OutputStreamWriter(mSocket.getOutputStream())),true);  
                 pout.println(msg);  

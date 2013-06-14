@@ -66,24 +66,24 @@ public class DBHelper {
 		}
 	}
 	// Check if device registered or not
-	public int checkDeviceReg(String uuid){
+	public boolean checkDeviceReg(String uuid){
 		try{
 			String sql = "select * from Device where Uuid='" + uuid + "'";
 			ResultSet rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return rs.getInt("Status");
+				return true;
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
 		}
-		return -1;
+		return false;
 	}
 	
 	// Register device on first connection
 	public void registerDevice(Device device){
 		try{
-			String sql = "insert into Device(Uuid, Addr, Port, Status) values('" + device.getUuid() + "', '" + device.getIpAddress().getHostAddress() + "', " + String.valueOf(device.getPort()) + ", "
-					+ String.valueOf(device.getStatus()) + ")";
+			String sql = "insert into Device(Uuid, Addr, Port) values('" + device.getUuid() + "', '" + device.getIpAddress().getHostAddress()
+					+ "', " + String.valueOf(device.getPort()) + ")";
 			System.out.println(sql);
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
@@ -110,18 +110,18 @@ public class DBHelper {
 	}
 	
 	// Update device status
-	public void updateDeviceStatus(int sta, String uuid){
+	/*public void updateDeviceStatus(int sta, String uuid){
 		try{
 			String sql = "update Device set Status=" + String.valueOf(sta) + " where Uuid='" + uuid + "'";
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
 		}
-	}
+	}*/
 	
 	public Boolean isBind(String uuid){
 		try{
-			String sql = "select * from Bind where Uuid1='" + uuid + "' or Uuid2='" + uuid + "'";
+			String sql = "select * from Bind where (Uuid1='" + uuid + "' and Uuid2!='') or Uuid2='" + uuid + "'";
 			ResultSet rs = statement.executeQuery(sql);
 			if(rs.next()){
 				return true;
@@ -130,6 +130,16 @@ public class DBHelper {
 			System.err.println(e.getMessage());
 		}
 		return false;
+	}
+	
+	public void cleanBind(){
+		try{
+				String sql = "delete from Bind where Uuid2=''";
+				statement.executeUpdate(sql);
+				
+		}catch(SQLException e){
+			System.err.println(e.getMessage());
+		}
 	}
 	
 	// First add one device to bind
@@ -172,10 +182,10 @@ public class DBHelper {
 	// get the other uuid of bind device
 	public String getAUuid(String uuid){
 		try{
-			String sql = "select * from Bind where Uuid2='" + uuid + "'";
+			String sql = "select * from Bind where Uuid1='" + uuid + "' or Uuid2='" + uuid + "'" ;
 			ResultSet rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return rs.getString("Uuid1");
+				return (rs.getString("Uuid1").contains(uuid))?rs.getString("Uuid2"):rs.getString("Uuid1");
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
@@ -209,10 +219,9 @@ public class DBHelper {
 	
 	public void registerObserv(Observ ob){
 		try{
-			String sql = "insert into Observ(Uuid1, Uuid2, TS_S, TS_D, MS, GT) values ('" 
+			String sql = "insert into Observ(Uuid1, Uuid2, TS_S, MS, GT) values('" 
 					+ ob.getUuid1() + "', '" + ob.getUuid2() + "', " + String.valueOf(ob.getTS_S())
-					+ ", " + String.valueOf(ob.getTS_D()) + ", '" + ob.getModalityS() 
-					+ "', " + String.valueOf(ob.getGt()) + ")";
+					+ ", '" + ob.getModalityS() + "', " + String.valueOf(ob.getGt()) + ")";
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());

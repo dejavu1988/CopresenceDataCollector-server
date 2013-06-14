@@ -11,7 +11,7 @@ public class Device {
 	private InetAddress ipAddress;
 	private int port;
 	private Socket socket;
-	private int status;
+	//private int status;
 	
 	public Device(){
 		this.uuid = "";
@@ -19,7 +19,7 @@ public class Device {
 		this.ipAddress = null;
 		this.port = -1;
 		this.socket = null;
-		this.status = 0;
+		//this.status = 0;
 	}
 	
 	public Device(Device device){
@@ -28,16 +28,17 @@ public class Device {
 		this.ipAddress = device.getIpAddress();
 		this.port = device.getPort();
 		this.socket = device.getSocket();
-		this.status = device.getStatus();
+		//this.status = device.getStatus();
 	}
 	
-	public int getStatus(){
+	/*public int getStatus(){
 		return this.status;
-	}
+	}*/
 	
-	public void setStatus(int sta){
+	/*public void setStatus(int sta){
 		this.status = sta;
-	}
+	}*/
+	
 	public InetAddress getIpAddress(){
 		return this.ipAddress;
 	}
@@ -82,11 +83,11 @@ public class Device {
 		this.socket = null;
 	}
 	
-	public boolean isPrepared(){
+	/*public boolean isPrepared(){
 		return (this.uuid.length() != 0 && this.name.length() != 0 && this.ipAddress != null && this.port >=0);
-	}
+	}*/
 	
-	public boolean isDeviceActive(){
+	/*public boolean isDeviceActive(){
 		return (this.socket != null);
-	}
+	}*/
 }
