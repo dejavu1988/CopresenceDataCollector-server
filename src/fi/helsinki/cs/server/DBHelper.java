@@ -84,7 +84,7 @@ public class DBHelper {
 		try{
 			String sql = "insert into Device(Uuid, Addr, Port) values('" + device.getUuid() + "', '" + device.getIpAddress().getHostAddress()
 					+ "', " + String.valueOf(device.getPort()) + ")";
-			System.out.println(sql);
+			//System.out.println(sql);
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
