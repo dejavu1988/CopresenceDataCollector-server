@@ -266,11 +266,13 @@ public class Main {
                     		obs.setTS_S();
                     		obs.setGt(Integer.parseInt(gt));
                     		db.registerObserv(obs);	//add observ to database
+                    		int obNum = db.getObservNumber(obs);
                     		System.out.println(dMap.containsKey(aUuid));
                     		System.out.println(sMap.containsKey(aUuid));
                     		msgObj.clear();                    			
                         	msgObj.put("id", "ACK_TASK");
                         	msgObj.put("dt", "0");
+                        	msgObj.put("ob", String.valueOf(obNum));
                         	msgObj.put("gt", gt);
                         	//msgObj.put("mod", mod);
                         	String msg = gson.toJson(msgObj); 
@@ -279,6 +281,7 @@ public class Main {
                         	msgObj.clear();                    			
                         	msgObj.put("id", "ACK_TASK");
                         	msgObj.put("dt", "0");
+                        	msgObj.put("ob", String.valueOf(obNum));
                         	msgObj.put("gt", gt);
                         	//msgObj.put("mod", mod);
                         	String msg2 = gson.toJson(msgObj);

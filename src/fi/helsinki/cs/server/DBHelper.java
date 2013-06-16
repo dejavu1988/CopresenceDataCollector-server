@@ -221,11 +221,25 @@ public class DBHelper {
 		try{
 			String sql = "insert into Observ(Uuid1, Uuid2, TS_S, MS, GT) values('" 
 					+ ob.getUuid1() + "', '" + ob.getUuid2() + "', " + String.valueOf(ob.getTS_S())
-					+ ", '" + ob.getModalityS() + "', " + String.valueOf(ob.getGt()) + ")";
+					+ ", " + String.valueOf(ob.getMod()) + ", " + String.valueOf(ob.getGt()) + ")";
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
 		}
+	}
+	
+	// get the sequential number of observation
+	public int getObservNumber(Observ ob){
+		try{
+			String sql = "select * from Observ where TS_S='" + String.valueOf(ob.getTS_S()) + "'";
+			ResultSet rs = statement.executeQuery(sql);
+			if(rs.next()){
+				return rs.getInt("Id");
+			}
+		}catch(SQLException e){
+			System.err.println(e.getMessage());
+		}
+		return 0;
 	}
 	
 	

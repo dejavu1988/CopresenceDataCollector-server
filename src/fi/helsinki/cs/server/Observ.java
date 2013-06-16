@@ -8,7 +8,7 @@ public class Observ {
 	private String uuid2;
 	private long ts_s;
 	private long ts_d;
-	private TreeSet<String> ms;
+	private int ms;
 	private int gt;	//-1:non-colocation, 0:unknown, 1:colocation
 	
 	public Observ(){
@@ -16,7 +16,7 @@ public class Observ {
 		this.uuid2 = "";
 		ts_s = System.currentTimeMillis();
 		ts_d = 0;
-		ms = new TreeSet<String>();
+		ms = 7;
 		gt = 0;
 	}
 	
@@ -49,29 +49,20 @@ public class Observ {
 		return this.ts_d;
 	}
 	
-	public void addModality(String mod){
-		if(!this.ms.contains(mod))
-			this.ms.add(mod);
+	public void setMod(int mod){
+		this.ms &= mod; 
 	}
 	
-	public TreeSet<String> getModality(){
+	public int getMod(){
 		return this.ms;
 	}
 	
-	public TreeSet<String> intersect(TreeSet<String> ts){
-		Iterator<String> it = ts.iterator();
-		TreeSet<String> x = new TreeSet<String>();
-		String tmp = null;
-		while(it.hasNext()){
-			if(this.ms.contains(tmp = it.next())){
-				x.add(tmp);
-			}
-		}
-		this.ms = x;
-		return x;
+	public int intersect(int mk){
+		
+		return (this.ms & mk);
 	}
 	
-	public String getModalityS(){
+	/*public String getModalityS(){
 		Iterator<String> it = this.ms.iterator();
 		String tmp = "";
 		while(it.hasNext()){
@@ -81,7 +72,7 @@ public class Observ {
 			}
 		}
 		return this.ms.toString();
-	}
+	}*/
 	
 	public void setGt(int gt){
 		this.gt = gt;
@@ -91,7 +82,7 @@ public class Observ {
 		return this.gt;
 	}
 	
-	public boolean isPrepared(){
+	/*public boolean isPrepared(){
 		return (!this.ms.isEmpty() && this.uuid1.length() != 0);
-	}
+	}*/
 }
