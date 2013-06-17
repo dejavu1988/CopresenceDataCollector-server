@@ -247,7 +247,6 @@ public class Main {
                             	//msgObj.put("peer", String.valueOf(peerOn));
                             	String msg = gson.toJson(msgObj);
                             	System.out.println("ACK_ALIVE Bind test: "+uuid+" "+test);
-                            	System.out.println(aUuid + aName);
                             	this.sendBackMsg(msg);
                     		}else{
                     			msgObj.clear();   			
