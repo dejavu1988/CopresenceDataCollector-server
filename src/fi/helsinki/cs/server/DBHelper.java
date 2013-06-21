@@ -5,26 +5,33 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 
 public class DBHelper {
 	
 	private Connection connection;
 	private Statement statement;
 	
-	public DBHelper() throws ClassNotFoundException{
-		Class.forName("org.sqlite.JDBC");
+	public DBHelper(){
+		try {
+			Class.forName("org.sqlite.JDBC");
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		this.connection = null;
+		this.statement = null;
 	}
 	
 	public void prepareMem() throws SQLException{
 		connection = DriverManager.getConnection(Constants.DB_MEM);
 		statement = connection.createStatement();
+		//statement.setQueryTimeout(30); 
 	}
 	
 	public void prepare() throws SQLException{
 		connection = DriverManager.getConnection(Constants.DB_LOCAL);
 		statement = connection.createStatement();
+		//statement.setQueryTimeout(30); 
 	}
 	
 	// Start on-memory database
@@ -49,6 +56,8 @@ public class DBHelper {
 	public void terminateMem(){
 		try{
 			backupFromMem();
+			if(statement != null)
+				statement.close();
 			if(connection != null)
 				connection.close();
 		}catch(SQLException e){
@@ -57,8 +66,9 @@ public class DBHelper {
 	}
 	
 	public void terminate(){
-		try{
-			
+		try{			
+			if(statement != null)
+				statement.close();			
 			if(connection != null)
 				connection.close();
 		}catch(SQLException e){
@@ -67,16 +77,24 @@ public class DBHelper {
 	}
 	// Check if device registered or not
 	public boolean checkDeviceReg(String uuid){
+		ResultSet rs = null;
+		boolean result = false;
 		try{
 			String sql = "select * from Device where Uuid='" + uuid + "'";
-			ResultSet rs = statement.executeQuery(sql);
+			rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return true;
+				result = true;
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
+		}finally{
+			try {
+				if(rs != null)	rs.close();
+			} catch (SQLException e) {
+				System.err.println(e.getMessage());
+			}
 		}
-		return false;
+		return result;
 	}
 	
 	// Register device on first connection
@@ -84,7 +102,6 @@ public class DBHelper {
 		try{
 			String sql = "insert into Device(Uuid, Addr, Port) values('" + device.getUuid() + "', '" + device.getIpAddress().getHostAddress()
 					+ "', " + String.valueOf(device.getPort()) + ")";
-			//System.out.println(sql);
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
@@ -94,6 +111,15 @@ public class DBHelper {
 	public void updateDeviceAddr(Device device){
 		try{
 			String sql = "update Device set Addr='" + device.getIpAddress().getHostAddress() + "' and Port=" + device.getPort() + " where Uuid='" + device.getUuid() + "'";
+			statement.executeUpdate(sql);
+		}catch(SQLException e){
+			System.err.println(e.getMessage());
+		}
+	}
+	
+	public void updateVersion(String uuid, String ver){
+		try{
+			String sql = "update Device set Ver='" + ver + "' where Uuid='" + uuid + "'";
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
@@ -119,17 +145,25 @@ public class DBHelper {
 		}
 	}*/
 	
-	public Boolean isBind(String uuid){
+	public boolean isBind(String uuid){
+		ResultSet rs = null;
+		boolean result = false;
 		try{
 			String sql = "select * from Bind where (Uuid1='" + uuid + "' and Uuid2!='') or Uuid2='" + uuid + "'";
-			ResultSet rs = statement.executeQuery(sql);
+			rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return true;
+				result = true;
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
+		}finally{
+			try {
+				if(rs != null)	rs.close();
+			} catch (SQLException e) {
+				System.err.println(e.getMessage());
+			}
 		}
-		return false;
+		return result;
 	}
 	
 	public void cleanBind(){
@@ -156,17 +190,25 @@ public class DBHelper {
 	
 	// check QNum ok
 	public boolean isQnumFit(int qnum){
+		ResultSet rs = null;
+		boolean result = false;
 		try{
 			String sql = "select * from Bind where Uuid1!='' and Uuid2='' and QNum=" + String.valueOf(qnum);
 			//System.out.println(sql);
-			ResultSet rs = statement.executeQuery(sql);
+			rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return true;
+				result = true;
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
+		}finally{
+			try {
+				if(rs != null)	rs.close();
+			} catch (SQLException e) {
+				System.err.println(e.getMessage());
+			}
 		}
-		return false;
+		return result;
 	}
 	
 	// registry bind
@@ -181,30 +223,46 @@ public class DBHelper {
 	
 	// get the other uuid of bind device
 	public String getAUuid(String uuid){
+		ResultSet rs = null;
+		String result = null;
 		try{
 			String sql = "select * from Bind where Uuid1='" + uuid + "' or Uuid2='" + uuid + "'" ;
-			ResultSet rs = statement.executeQuery(sql);
+			rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return (rs.getString("Uuid1").contains(uuid))?rs.getString("Uuid2"):rs.getString("Uuid1");
+				result = (rs.getString("Uuid1").contains(uuid))?rs.getString("Uuid2"):rs.getString("Uuid1");
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
+		}finally{
+			try {
+				if(rs != null)	rs.close();
+			} catch (SQLException e) {
+				System.err.println(e.getMessage());
+			}
 		}
-		return null;
+		return result;
 	}
 	
 	// get the name of device
 	public String getName(String uuid){
+		ResultSet rs = null;
+		String result = null;
 		try{
 			String sql = "select * from Device where Uuid='" + uuid + "'";
-			ResultSet rs = statement.executeQuery(sql);
+			rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return rs.getString("Name");
+				result = rs.getString("Name");
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
+		}finally{
+			try {
+				if(rs != null)	rs.close();
+			} catch (SQLException e) {
+				System.err.println(e.getMessage());
+			}
 		}
-		return null;
+		return result;
 	}
 	
 	
@@ -230,16 +288,24 @@ public class DBHelper {
 	
 	// get the sequential number of observation
 	public int getObservNumber(Observ ob){
+		ResultSet rs = null;
+		int result = 0;
 		try{
 			String sql = "select * from Observ where TS_S='" + String.valueOf(ob.getTS_S()) + "'";
-			ResultSet rs = statement.executeQuery(sql);
+			rs = statement.executeQuery(sql);
 			if(rs.next()){
-				return rs.getInt("Id");
+				result = rs.getInt("Id");
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
+		}finally{
+			try {
+				if(rs != null)	rs.close();
+			} catch (SQLException e) {
+				System.err.println(e.getMessage());
+			}
 		}
-		return 0;
+		return result;
 	}
 	
 	

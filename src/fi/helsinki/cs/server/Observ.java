@@ -1,8 +1,5 @@
 package fi.helsinki.cs.server;
 
-import java.util.Iterator;
-import java.util.TreeSet;
-
 public class Observ {
 	private String uuid1;
 	private String uuid2;

@@ -15,7 +15,7 @@ public final class Constants {
 	
 	// Server address
 	public static final String SERVER_INET = "54.229.32.28"; 
-    public static final int PORT = 8887;
+    public static final int SERVER_PORT = 8887;
     
     // Sqlite database
     public static final String DB_LOCAL =  "jdbc:sqlite:index.db";

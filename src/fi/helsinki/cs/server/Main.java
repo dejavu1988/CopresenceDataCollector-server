@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;  
 import java.io.PrintWriter;  
 import java.lang.reflect.Type;
-import java.net.InetAddress;
 import java.net.ServerSocket;  
 import java.net.Socket;  
 import java.util.ArrayList;  
@@ -29,25 +28,22 @@ public class Main {
     private ExecutorService mExecutorService = null; //thread pool  
     private Gson gson = new Gson();
     DBHelper db = null;
-    private int rn;
-    
     public static void main(String[] args) {  
         new Main();  
     }  
     public Main() {  
         try {  
-        	db = new DBHelper();
-        	db.prepare();
+        	//db = new DBHelper();
+        	//db.prepare();
         	//db.startToMem();	//restore in-mem sqlite3 database
-        	serverSocket = new ServerSocket(Constants.PORT);  //server socket
+        	serverSocket = new ServerSocket(Constants.SERVER_PORT);  //server socket
             mExecutorService = Executors.newCachedThreadPool();  //create a thread pool  
-            System.out.println("Server " + Constants.SERVER_INET + " started at port " + Constants.PORT + ".");  
+            System.out.println("Server " + Constants.SERVER_INET + " started at port " + Constants.SERVER_PORT + ".");  
             //Socket clientSocket = null;  
             Device device = new Device();
             while(true) {  
             	Socket clientSocket = serverSocket.accept();  //waits for incoming request
             	clientSocket.setKeepAlive(true);
-            	rn = (int)(Math.random()*8847);
                 System.out.println("**\nClient "+ clientSocket.getInetAddress() + ":" + String.valueOf(clientSocket.getPort()) + " connected.\n**");
                 	//initiate Device Object
                 device.setIpAddress(clientSocket.getInetAddress());
@@ -105,9 +101,14 @@ public class Main {
                     	
                     	msgObj = gson.fromJson(msg, mapType);
                     	String token = msgObj.get("id");
+                    	
+                    	db = new DBHelper();
+                    	db.prepare();
+                    	
                     	if(token.contains("ACK_UUID")){	//ACK with UUID
                     		System.out.println("ACK_UUID received: "+msg);
                     		String uuid = msgObj.get("uuid");
+                    		String ver = msgObj.get("ver");
                     		
                     		
                     		client.setUuid(uuid);
@@ -118,6 +119,7 @@ public class Main {
                     		}else{
                     			db.updateDeviceAddr(client);
                     		}
+                    		db.updateVersion(uuid, ver);
                     		dMap.put(uuid, client);
                     		sMap.put(uuid, socket);
                     		
@@ -339,6 +341,8 @@ public class Main {
                             this.sendmsg(msg);  
                     		break; */
                     	}  
+                    	
+                    	db.terminate();
                     }  
                 }  
             } catch (Exception e) {  
@@ -355,6 +359,7 @@ public class Main {
                 pout = new PrintWriter(new BufferedWriter(  
                         new OutputStreamWriter(mSocket.getOutputStream())),true);  
                 pout.println(msg);  
+                pout.flush();
             }catch (IOException e) {  
                 e.printStackTrace();  
             }             
@@ -396,6 +401,7 @@ public class Main {
                 pout = new PrintWriter(new BufferedWriter(  
                         new OutputStreamWriter(mSocket.getOutputStream())),true);  
                 pout.println(msg);  
+                pout.flush();
             }catch (IOException e) {  
                 e.printStackTrace();  
             }             
@@ -410,6 +416,7 @@ public class Main {
                 pout = new PrintWriter(new BufferedWriter(  
                         new OutputStreamWriter(mSocket.getOutputStream())),true);  
                 pout.println(msg);  
+                pout.flush();
             }catch (IOException e) {  
                 e.printStackTrace();  
             }             
