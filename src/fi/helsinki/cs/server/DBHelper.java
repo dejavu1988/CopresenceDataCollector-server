@@ -149,7 +149,7 @@ public class DBHelper {
 		ResultSet rs = null;
 		boolean result = false;
 		try{
-			String sql = "select * from Bind where (Uuid1='" + uuid + "' and Uuid2!='') or Uuid2='" + uuid + "'";
+			String sql = "select * from Bind where Uuid1='" + uuid + "' and Uuid2!='' or Uuid2='" + uuid + "'";
 			rs = statement.executeQuery(sql);
 			if(rs.next()){
 				result = true;
@@ -224,12 +224,17 @@ public class DBHelper {
 	// get the other uuid of bind device
 	public String getAUuid(String uuid){
 		ResultSet rs = null;
-		String result = null;
+		String result = "";
 		try{
 			String sql = "select * from Bind where Uuid1='" + uuid + "' or Uuid2='" + uuid + "'" ;
 			rs = statement.executeQuery(sql);
 			if(rs.next()){
-				result = (rs.getString("Uuid1").contains(uuid))?rs.getString("Uuid2"):rs.getString("Uuid1");
+				String tmp1 = rs.getString("Uuid1");
+				String tmp2 = rs.getString("Uuid2");
+				if(tmp1.contains(uuid))
+					result = tmp2;
+				else
+					result = tmp1;
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
@@ -246,7 +251,7 @@ public class DBHelper {
 	// get the name of device
 	public String getName(String uuid){
 		ResultSet rs = null;
-		String result = null;
+		String result = "";
 		try{
 			String sql = "select * from Device where Uuid='" + uuid + "'";
 			rs = statement.executeQuery(sql);
