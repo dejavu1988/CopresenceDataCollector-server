@@ -126,6 +126,15 @@ public class DBHelper {
 		}
 	}
 	
+	/*public void updateStatus(String uuid, int sta){
+		try{
+			String sql = "update Device set Status='" + sta + "' where Uuid='" + uuid + "'";
+			statement.executeUpdate(sql);
+		}catch(SQLException e){
+			System.err.println(e.getMessage());
+		}
+	}*/
+	
 	public void updateDeviceName(Device device){
 		try{
 			String sql = "update Device set Name='" + device.getName() + "' where Uuid='" + device.getUuid() + "'";
@@ -269,6 +278,28 @@ public class DBHelper {
 		}
 		return result;
 	}
+	
+	// get the status of device
+	/*public int getStatus(String uuid){
+		ResultSet rs = null;
+		int result = 0;
+		try{
+			String sql = "select * from Device where Uuid='" + uuid + "'";
+			rs = statement.executeQuery(sql);
+			if(rs.next()){
+				result = rs.getInt("Status");
+			}
+		}catch(SQLException e){
+			System.err.println(e.getMessage());
+		}finally{
+			try {
+				if(rs != null)	rs.close();
+			} catch (SQLException e) {
+				System.err.println(e.getMessage());
+			}
+		}
+		return result;
+	}*/
 	
 	
 	public void unregisterBind(String uuid){

@@ -12,6 +12,7 @@ public class Device {
 	private int port;
 	private Socket socket;
 	//private int status;
+	private long ts;
 	
 	public Device(){
 		this.uuid = "";
@@ -20,6 +21,7 @@ public class Device {
 		this.port = -1;
 		this.socket = null;
 		//this.status = 0;
+		this.ts = System.currentTimeMillis();
 	}
 	
 	public Device(Device device){
@@ -29,6 +31,7 @@ public class Device {
 		this.port = device.getPort();
 		this.socket = device.getSocket();
 		//this.status = device.getStatus();
+		this.ts = device.getTS();
 	}
 	
 	/*public int getStatus(){
@@ -81,6 +84,14 @@ public class Device {
 	
 	public void resetSocket(){
 		this.socket = null;
+	}
+	
+	public long getTS(){
+		return this.ts;
+	}
+	
+	public void setTS(long ts){
+		this.ts = ts;
 	}
 	
 	/*public boolean isPrepared(){
