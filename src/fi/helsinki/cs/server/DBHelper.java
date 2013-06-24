@@ -22,17 +22,40 @@ public class DBHelper {
 		this.statement = null;
 	}
 	
-	public void prepareMem() throws SQLException{
-		connection = DriverManager.getConnection(Constants.DB_MEM);
-		statement = connection.createStatement();
-		//statement.setQueryTimeout(30); 
+	public void prepareMem(){
+		try {
+			connection = DriverManager.getConnection(Constants.DB_MEM);
+			statement = connection.createStatement();
+			//statement.setQueryTimeout(30); 
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 	}
 	
-	public void prepare() throws SQLException{
-		connection = DriverManager.getConnection(Constants.DB_LOCAL);
-		statement = connection.createStatement();
-		//statement.setQueryTimeout(30); 
+	public void prepare(){
+		try {
+			connection = DriverManager.getConnection(Constants.DB_LOCAL);
+			statement = connection.createStatement();
+			//statement.setQueryTimeout(30); 
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 	}
+	
+	/*public boolean isOk(){
+		boolean flag = false;
+		if(connection != null){
+			try {
+				flag = connection.isValid(0);
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return flag;
+	}*/
 	
 	// Start on-memory database
 	public void startToMem(){
@@ -75,10 +98,25 @@ public class DBHelper {
 			System.err.println(e.getMessage());
 		}
 	}
+	
+	public void recover(){
+		try {
+			if(connection == null){
+				connection = DriverManager.getConnection(Constants.DB_LOCAL);
+				statement = connection.createStatement();
+			}else if(statement == null){
+				statement = connection.createStatement();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	// Check if device registered or not
 	public boolean checkDeviceReg(String uuid){
 		ResultSet rs = null;
 		boolean result = false;
+		recover();
 		try{
 			String sql = "select * from Device where Uuid='" + uuid + "'";
 			rs = statement.executeQuery(sql);
@@ -99,6 +137,7 @@ public class DBHelper {
 	
 	// Register device on first connection
 	public void registerDevice(Device device){
+		recover();
 		try{
 			String sql = "insert into Device(Uuid, Addr, Port) values('" + device.getUuid() + "', '" + device.getIpAddress().getHostAddress()
 					+ "', " + String.valueOf(device.getPort()) + ")";
@@ -109,6 +148,7 @@ public class DBHelper {
 	}
 	
 	public void updateDeviceAddr(Device device){
+		recover();
 		try{
 			String sql = "update Device set Addr='" + device.getIpAddress().getHostAddress() + "' and Port=" + device.getPort() + " where Uuid='" + device.getUuid() + "'";
 			statement.executeUpdate(sql);
@@ -118,6 +158,7 @@ public class DBHelper {
 	}
 	
 	public void updateVersion(String uuid, String ver){
+		recover();
 		try{
 			String sql = "update Device set Ver='" + ver + "' where Uuid='" + uuid + "'";
 			statement.executeUpdate(sql);
@@ -136,6 +177,7 @@ public class DBHelper {
 	}*/
 	
 	public void updateDeviceName(Device device){
+		recover();
 		try{
 			String sql = "update Device set Name='" + device.getName() + "' where Uuid='" + device.getUuid() + "'";
 			statement.executeUpdate(sql);
@@ -146,6 +188,7 @@ public class DBHelper {
 	
 	// Update device status
 	/*public void updateDeviceStatus(int sta, String uuid){
+	 * recover();
 		try{
 			String sql = "update Device set Status=" + String.valueOf(sta) + " where Uuid='" + uuid + "'";
 			statement.executeUpdate(sql);
@@ -157,6 +200,7 @@ public class DBHelper {
 	public boolean isBind(String uuid){
 		ResultSet rs = null;
 		boolean result = false;
+		recover();
 		try{
 			String sql = "select * from Bind where Uuid1='" + uuid + "' and Uuid2!='' or Uuid2='" + uuid + "'";
 			rs = statement.executeQuery(sql);
@@ -176,6 +220,7 @@ public class DBHelper {
 	}
 	
 	public void cleanBind(){
+		recover();
 		try{
 				String sql = "delete from Bind where Uuid2=''";
 				statement.executeUpdate(sql);
@@ -187,6 +232,7 @@ public class DBHelper {
 	
 	// First add one device to bind
 	public void registerBind(Device device, int qnum){
+		recover();
 		try{
 				String sql = "insert into Bind(Uuid1, QNum) values ('" + device.getUuid()
 						+ "', " + String.valueOf(qnum) + ")";
@@ -201,6 +247,7 @@ public class DBHelper {
 	public boolean isQnumFit(int qnum){
 		ResultSet rs = null;
 		boolean result = false;
+		recover();
 		try{
 			String sql = "select * from Bind where Uuid1!='' and Uuid2='' and QNum=" + String.valueOf(qnum);
 			//System.out.println(sql);
@@ -222,6 +269,7 @@ public class DBHelper {
 	
 	// registry bind
 	public void updateBind(String uuid, int qnum){
+		recover();
 		try{
 			String sql = "update Bind set Uuid2='" + uuid + "' where Uuid2='' and QNum=" + qnum;
 			statement.executeUpdate(sql);
@@ -234,6 +282,7 @@ public class DBHelper {
 	public String getAUuid(String uuid){
 		ResultSet rs = null;
 		String result = "";
+		recover();
 		try{
 			String sql = "select * from Bind where Uuid1='" + uuid + "' or Uuid2='" + uuid + "'" ;
 			rs = statement.executeQuery(sql);
@@ -261,6 +310,7 @@ public class DBHelper {
 	public String getName(String uuid){
 		ResultSet rs = null;
 		String result = "";
+		recover();
 		try{
 			String sql = "select * from Device where Uuid='" + uuid + "'";
 			rs = statement.executeQuery(sql);
@@ -303,6 +353,7 @@ public class DBHelper {
 	
 	
 	public void unregisterBind(String uuid){
+		recover();
 		try{
 			String sql = "delete from Bind where Uuid1 = '" + uuid +"' or Uuid2 = '" + uuid + "'";
 			statement.executeUpdate(sql);
@@ -312,6 +363,7 @@ public class DBHelper {
 	}
 	
 	public void registerObserv(Observ ob){
+		recover();
 		try{
 			String sql = "insert into Observ(Uuid1, Uuid2, TS_S, MS, GT) values('" 
 					+ ob.getUuid1() + "', '" + ob.getUuid2() + "', " + String.valueOf(ob.getTS_S())
@@ -326,6 +378,7 @@ public class DBHelper {
 	public int getObservNumber(Observ ob){
 		ResultSet rs = null;
 		int result = 0;
+		recover();
 		try{
 			String sql = "select * from Observ where TS_S='" + String.valueOf(ob.getTS_S()) + "'";
 			rs = statement.executeQuery(sql);

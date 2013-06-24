@@ -9,9 +9,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.net.ServerSocket;  
 import java.net.Socket;  
-import java.util.ArrayList;  
 import java.util.HashMap;
-import java.util.List;  
 import java.util.concurrent.ExecutorService;  
 import java.util.concurrent.Executors;  
 
@@ -21,7 +19,7 @@ import com.google.gson.reflect.TypeToken;
   
 public class Main {  
 	
-    private List<Device> dList = new ArrayList<Device>();  
+    //private List<Device> dList = new ArrayList<Device>();  
     private static HashMap<String,Device> dMap = new HashMap<String,Device>();
     private static HashMap<String,Socket> sMap = new HashMap<String,Socket>();
     private ServerSocket serverSocket = null;  
@@ -33,8 +31,8 @@ public class Main {
     }  
     public Main() {  
         try {  
-        	//db = new DBHelper();
-        	//db.prepare();
+        	db = new DBHelper();
+        	db.prepare();
         	//db.startToMem();	//restore in-mem sqlite3 database
         	serverSocket = new ServerSocket(Constants.SERVER_PORT);  //server socket
             mExecutorService = Executors.newCachedThreadPool();  //create a thread pool  
@@ -106,8 +104,9 @@ public class Main {
                     	
                     	client.setTS(System.currentTimeMillis());
                     	
-                    	db = new DBHelper();
-                    	db.prepare();
+                    	//db = new DBHelper();
+                    	//db.prepare();
+                    	
                     	
                     	if(token.contains("ACK_UUID")){	//ACK with UUID
                     		System.out.println("ACK_UUID received: "+msg);
@@ -390,11 +389,11 @@ public class Main {
                     	}else if(token.contains("EXIT")){
                     		// client leaves
                     		System.out.println("Connection shutdown."); 
-                    		System.out.println(msg);
-                            dList.remove(client);  
+                    		//System.out.println(msg);
+                            //dList.remove(client);  
                             client.resetSocket();
                             in.close();  
-                            msg = "Client " + socket.getInetAddress() + " exit, total: " + String.valueOf(dList.size());  
+                            //msg = "Client " + socket.getInetAddress() + " exit, total: " + String.valueOf(dList.size());  
                             socket.close(); 
                             //this.sendmsg(msg);
                     		break;
@@ -405,7 +404,7 @@ public class Main {
                     		break; */
                     	}  
                     	
-                    	db.terminate();
+                    	//db.terminate();
                     }  
                 }  
             } catch (Exception e) {  
