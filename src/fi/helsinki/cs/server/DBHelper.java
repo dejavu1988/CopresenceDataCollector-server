@@ -125,13 +125,13 @@ public class DBHelper {
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
-		}finally{
+		}/*finally{
 			try {
 				if(rs != null)	rs.close();
 			} catch (SQLException e) {
 				System.err.println(e.getMessage());
 			}
-		}
+		}*/
 		return result;
 	}
 	
@@ -139,8 +139,8 @@ public class DBHelper {
 	public void registerDevice(Device device){
 		recover();
 		try{
-			String sql = "insert into Device(Uuid, Addr, Port) values('" + device.getUuid() + "', '" + device.getIpAddress().getHostAddress()
-					+ "', " + String.valueOf(device.getPort()) + ")";
+			String sql = "insert into Device(Uuid, Addr, Port, Ver) values('" + device.getUuid() + "', '" + device.getIpAddress().getHostAddress()
+					+ "', " + String.valueOf(device.getPort()) + ", '" + device.getVer() + "')";
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
@@ -157,10 +157,10 @@ public class DBHelper {
 		}
 	}
 	
-	public void updateVersion(String uuid, String ver){
+	public void updateVersion(Device device){
 		recover();
 		try{
-			String sql = "update Device set Ver='" + ver + "' where Uuid='" + uuid + "'";
+			String sql = "update Device set Ver='" + device.getVer() + "' where Uuid='" + device.getUuid() + "'";
 			statement.executeUpdate(sql);
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
@@ -209,13 +209,13 @@ public class DBHelper {
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
-		}finally{
+		}/*finally{
 			try {
 				if(rs != null)	rs.close();
 			} catch (SQLException e) {
 				System.err.println(e.getMessage());
 			}
-		}
+		}*/
 		return result;
 	}
 	
@@ -257,13 +257,13 @@ public class DBHelper {
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
-		}finally{
+		}/*finally{
 			try {
 				if(rs != null)	rs.close();
 			} catch (SQLException e) {
 				System.err.println(e.getMessage());
 			}
-		}
+		}*/
 		return result;
 	}
 	
@@ -296,13 +296,13 @@ public class DBHelper {
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
-		}finally{
+		}/*finally{
 			try {
 				if(rs != null)	rs.close();
 			} catch (SQLException e) {
 				System.err.println(e.getMessage());
 			}
-		}
+		}*/
 		return result;
 	}
 	
@@ -319,13 +319,13 @@ public class DBHelper {
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
-		}finally{
+		}/*finally{
 			try {
 				if(rs != null)	rs.close();
 			} catch (SQLException e) {
 				System.err.println(e.getMessage());
 			}
-		}
+		}*/
 		return result;
 	}
 	
@@ -387,13 +387,13 @@ public class DBHelper {
 			}
 		}catch(SQLException e){
 			System.err.println(e.getMessage());
-		}finally{
+		}/*finally{
 			try {
 				if(rs != null)	rs.close();
 			} catch (SQLException e) {
 				System.err.println(e.getMessage());
 			}
-		}
+		}*/
 		return result;
 	}
 	

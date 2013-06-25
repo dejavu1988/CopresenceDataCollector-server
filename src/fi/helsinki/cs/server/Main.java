@@ -115,14 +115,17 @@ public class Main {
                     		//int status = Integer.parseInt(msgObj.get("sta"));
                     		
                     		client.setUuid(uuid);
+                    		client.setVer(ver);
+                    		
                 			//client.setStatus(Constants.STATUS_BIND_OFF);
                     		if(!db.checkDeviceReg(uuid)){	//new device                    			
                     			db.registerDevice(client);
                     			System.out.println("ACK_UUID: new device");
                     		}else{
                     			db.updateDeviceAddr(client);
+                    			db.updateVersion(client);
                     		}
-                    		db.updateVersion(uuid, ver);
+                    		
                     		//db.updateStatus(uuid, status);
                     		dMap.put(uuid, client);
                     		sMap.put(uuid, socket);

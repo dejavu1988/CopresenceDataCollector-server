@@ -13,6 +13,7 @@ public class Device {
 	private Socket socket;
 	//private int status;
 	private long ts;
+	private String ver;
 	
 	public Device(){
 		this.uuid = "";
@@ -22,6 +23,7 @@ public class Device {
 		this.socket = null;
 		//this.status = 0;
 		this.ts = System.currentTimeMillis();
+		this.ver = "";
 	}
 	
 	public Device(Device device){
@@ -32,6 +34,7 @@ public class Device {
 		this.socket = device.getSocket();
 		//this.status = device.getStatus();
 		this.ts = device.getTS();
+		this.ver = device.getVer();
 	}
 	
 	/*public int getStatus(){
@@ -56,6 +59,14 @@ public class Device {
 	
 	public void setPort(int port){
 		this.port = port;
+	}
+	
+	public String getVer(){
+		return this.ver;
+	}
+	
+	public void setVer(String ver){
+		this.ver = ver;
 	}
 	
 	public String getUuid(){
