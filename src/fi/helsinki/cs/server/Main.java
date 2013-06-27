@@ -276,6 +276,7 @@ public class Main {
                                 	msgObj.put("bindId", aUuid);
                                 	msgObj.put("bindName", aName);
                                 	msgObj.put("peerOn", String.valueOf(sta));
+                                	msgObj.put("flag", "1");
                                 	String msg = gson.toJson(msgObj);
                                 	System.out.println("ACK_ALIVE Bind test: "+uuid+" "+test);
                                 	sendBackMsg(msg);
@@ -285,6 +286,7 @@ public class Main {
                                 	msgObj.put("bindId", uuid);
                                 	msgObj.put("bindName", db.getName(uuid));
                                 	msgObj.put("peerOn", String.valueOf(true));
+                                	msgObj.put("flag", "0");
                                 	String msg2 = gson.toJson(msgObj);
                                 	//System.out.println("ACK_ALIVE Bind test: "+uuid+" "+test);
                                 	sendMsg(msg2, aUuid);
@@ -295,6 +297,7 @@ public class Main {
                                 	msgObj.put("bindId", aUuid);
                                 	msgObj.put("bindName", aName);
                                 	msgObj.put("peerOn", String.valueOf(sta));
+                                	msgObj.put("flag", "1");
                                 	String msg = gson.toJson(msgObj);
                                 	System.out.println("ACK_ALIVE Bind test: "+uuid+" "+test);
                                 	sendBackMsg(msg);
