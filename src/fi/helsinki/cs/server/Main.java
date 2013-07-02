@@ -316,6 +316,7 @@ public class Main {
                     		System.out.println("REQ_TASK received: " + msg);
                     		String uuid = msgObj.get("uuid");
                     		String gt = msgObj.get("gt");
+                    		String mt = msgObj.get("mt");
                     		//String mod = msgObj.get("mod");
                     		String aUuid = db.getAUuid(uuid);
                     		//Socket so = getSocket(aUuid);
@@ -339,6 +340,7 @@ public class Main {
                             	msgObj.put("dt", "0");
                             	msgObj.put("ob", String.valueOf(obNum));
                             	msgObj.put("gt", gt);
+                            	msgObj.put("mt", mt);
                             	//msgObj.put("mod", mod);
                             	String msg = gson.toJson(msgObj); 
                             	System.out.println("ACK_TASK sent to "+uuid);
@@ -349,6 +351,7 @@ public class Main {
                             	msgObj.put("dt", "0");
                             	msgObj.put("ob", String.valueOf(obNum));
                             	msgObj.put("gt", gt);
+                            	msgObj.put("mt", mt);
                             	//msgObj.put("mod", mod);
                             	String msg2 = gson.toJson(msgObj);
                             	System.out.println("ACK_TASK sent to "+aUuid);
