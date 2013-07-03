@@ -18,7 +18,7 @@ public final class Constants {
     public static final int SERVER_PORT = 8887;
     
     // Current stable release version
-    public static final String CURRENT_VERSION = "0.2a4";
+    public static final String CURRENT_VERSION = "0.2a6";
     
     // Sqlite database
     public static final String DB_LOCAL =  "jdbc:sqlite:index.db";

@@ -158,6 +158,18 @@ public class Main {
                             	System.out.println("UP_BIND Bind test: "+uuid+" "+test);
                             	//System.out.println(aUuid + aName);
                             	this.sendBackMsg(msg);
+                            	if(sta){
+                            		msgObj.clear();   			
+                                	msgObj.put("id", "ACK_ALIVE");
+                                	msgObj.put("bind", "true");
+                                	msgObj.put("bindId", uuid);
+                                	msgObj.put("bindName", db.getName(uuid));
+                                	msgObj.put("peerOn", String.valueOf(true));
+                                	msgObj.put("flag", "0");
+                                	String msg2 = gson.toJson(msgObj);
+                                	//System.out.println("ACK_ALIVE Bind test: "+uuid+" "+test);
+                                	sendMsg(msg2, aUuid);
+                            	}
                     		}else{
                     			msgObj.clear();   			
                             	msgObj.put("id", "UP_BIND");
@@ -320,6 +332,43 @@ public class Main {
                     		//String mod = msgObj.get("mod");
                     		String aUuid = db.getAUuid(uuid);
                     		//Socket so = getSocket(aUuid);
+                    		
+                    		System.out.println("Peer client found: "+dMap.containsKey(aUuid));
+                    		System.out.println("Peer socket found: "+sMap.containsKey(aUuid));
+                    		boolean sta = false;
+                    		if(dMap.containsKey(aUuid) && sMap.containsKey(aUuid)){
+                    			if(((System.currentTimeMillis()-dMap.get(aUuid).getTS()) < 120*1000)){
+                    				sta = true;
+                    			}
+                    		}
+                    		if(sta){
+                    			msgObj.clear();                    			
+                            	msgObj.put("id", "REQ_AGREE");
+                            	//msgObj.put("dt", "0");
+                            	msgObj.put("gt", gt);
+                            	msgObj.put("mt", mt);
+                            	//msgObj.put("mod", mod);
+                            	String msg = gson.toJson(msgObj);
+                            	System.out.println("REQ_AGREE sent to "+aUuid);
+                            	sendMsg(msg, aUuid);
+                    		}else{
+                    			msgObj.clear();                    			
+                            	msgObj.put("id", "ACK_TASK");
+                            	msgObj.put("gt", "0");
+                            	//msgObj.put("mod", mod);
+                            	String msg = gson.toJson(msgObj); 
+                            	System.out.println("ACK_TASK FIAL sent to "+uuid);
+                            	sendBackMsg(msg);
+                    		}
+                    		
+                    	}else if(token.contains("ACK_AGREE")){	//start tasks after 5 seconds
+                    		System.out.println("ACK_AGREE received: " + msg);
+                    		String uuid = msgObj.get("uuid");
+                    		String gt = msgObj.get("gt");
+                    		String mt = msgObj.get("mt");
+                    		//String mod = msgObj.get("mod");
+                    		String aUuid = db.getAUuid(uuid);
+                    		//Socket so = getSocket(aUuid);
                     		Observ obs = new Observ();
                     		obs.setUuid(uuid, aUuid);
                     		obs.setTS_S();
@@ -337,7 +386,7 @@ public class Main {
                     		if(sta){
                     			msgObj.clear();                    			
                             	msgObj.put("id", "ACK_TASK");
-                            	msgObj.put("dt", "0");
+                            	//msgObj.put("dt", "0");
                             	msgObj.put("ob", String.valueOf(obNum));
                             	msgObj.put("gt", gt);
                             	msgObj.put("mt", mt);
@@ -348,7 +397,7 @@ public class Main {
                             	//this.sendBackMsg(msg);
                             	msgObj.clear();                    			
                             	msgObj.put("id", "ACK_TASK");
-                            	msgObj.put("dt", "0");
+                            	//msgObj.put("dt", "0");
                             	msgObj.put("ob", String.valueOf(obNum));
                             	msgObj.put("gt", gt);
                             	msgObj.put("mt", mt);
@@ -356,7 +405,7 @@ public class Main {
                             	String msg2 = gson.toJson(msgObj);
                             	System.out.println("ACK_TASK sent to "+aUuid);
                             	sendMsg(msg2, aUuid);
-                    		}else{
+                    		}/*else{
                     			msgObj.clear();                    			
                             	msgObj.put("id", "ACK_TASK");
                             	msgObj.put("gt", "0");
@@ -364,7 +413,7 @@ public class Main {
                             	String msg = gson.toJson(msgObj); 
                             	System.out.println("ACK_TASK FIAL sent to "+uuid);
                             	sendBackMsg(msg);
-                    		}
+                    		}*/
                     		
                     	}else if(token.contains("REQ_UNBIND")){
                     		System.out.println("REQ_UNBIND reveiced: " + msg);

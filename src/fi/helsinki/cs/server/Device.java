@@ -14,6 +14,7 @@ public class Device {
 	//private int status;
 	private long ts;
 	private String ver;
+	//private int gt;
 	
 	public Device(){
 		this.uuid = "";
@@ -24,6 +25,7 @@ public class Device {
 		//this.status = 0;
 		this.ts = System.currentTimeMillis();
 		this.ver = "";
+		//this.gt = 0;
 	}
 	
 	public Device(Device device){
@@ -35,14 +37,15 @@ public class Device {
 		//this.status = device.getStatus();
 		this.ts = device.getTS();
 		this.ver = device.getVer();
+		//this.gt = device.getGT();
 	}
 	
-	/*public int getStatus(){
-		return this.status;
-	}*/
+	/*public int getGT(){
+		return this.gt;
+	}
 	
-	/*public void setStatus(int sta){
-		this.status = sta;
+	public void setGT(int gt){
+		this.gt = gt;
 	}*/
 	
 	public InetAddress getIpAddress(){
