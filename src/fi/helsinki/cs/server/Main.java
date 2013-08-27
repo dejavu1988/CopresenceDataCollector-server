@@ -13,8 +13,15 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;  
 import java.util.concurrent.Executors;  
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.musicg.wave.Wave;
+import com.musicg.wave.WaveHeader;
+
+import fi.helsinki.cs.audio.XCorrAndDistFromWav;
   
   
 public class Main {  
@@ -22,6 +29,8 @@ public class Main {
     //private List<Device> dList = new ArrayList<Device>();  
     private static HashMap<String,Device> dMap = new HashMap<String,Device>();
     private static HashMap<String,Socket> sMap = new HashMap<String,Socket>();
+    private static HashMap<String,Wave> wMap = new HashMap<String,Wave>();
+    
     private ServerSocket serverSocket = null;  
     private ExecutorService mExecutorService = null; //thread pool  
     private Gson gson = new Gson();
@@ -64,6 +73,7 @@ public class Main {
         private String msg;  
         private HashMap<String,String> msgObj;
         private Type mapType;
+        private String fp;
         
         public ThreadService(Device device) {  
         	this.client = device;
@@ -71,6 +81,7 @@ public class Main {
             client.setSocket(socket);
             this.in = null;
             this.msg = "";
+            this.fp = "";
             this.mapType = new TypeToken<HashMap<String,String>>(){}.getType();
             this.msgObj = new HashMap<String,String>();
             try {  
@@ -390,6 +401,7 @@ public class Main {
                             	msgObj.put("ob", String.valueOf(obNum));
                             	msgObj.put("gt", gt);
                             	msgObj.put("mt", mt);
+                            	msgObj.put("ar", String.valueOf(false));
                             	//msgObj.put("mod", mod);
                             	String msg = gson.toJson(msgObj); 
                             	System.out.println("ACK_TASK sent to "+uuid);
@@ -401,6 +413,7 @@ public class Main {
                             	msgObj.put("ob", String.valueOf(obNum));
                             	msgObj.put("gt", gt);
                             	msgObj.put("mt", mt);
+                            	msgObj.put("ar", String.valueOf(true));
                             	//msgObj.put("mod", mod);
                             	String msg2 = gson.toJson(msgObj);
                             	System.out.println("ACK_TASK sent to "+aUuid);
@@ -444,6 +457,33 @@ public class Main {
                     			String msg = gson.toJson(msgObj);
                     			this.sendBackMsg(msg);
                     		}
+                    	}else if(token.contains("SEND")){	//forward msg to peer
+                    		//System.out.println("SEND received: " + msg);
+                    		
+                    		String uuid = msgObj.get("uuid");
+                    		String waveHeaderJson = msgObj.get("header");
+                    		String waveData = msgObj.get("data");
+                    		String aUuid = db.getAUuid(uuid);
+                    		
+                    		Gson gson = new Gson();
+                      		WaveHeader waveHeaderRemote = gson.fromJson(waveHeaderJson, WaveHeader.class);
+                      		byte[] dataRemote = null;
+                      		try {
+                      			dataRemote = Hex.decodeHex(waveData.toCharArray());
+                    		} catch (DecoderException e) {
+                    			// TODO Auto-generated catch block
+                    			e.printStackTrace();
+                    		}
+                      		Wave waveLocal = new Wave(waveHeaderRemote, dataRemote);
+                      		
+                      		if(aUuid != ""){
+                      			if(wMap.containsKey(aUuid)){                          			
+                          			new Thread(new AudioTask(waveLocal, uuid, aUuid)).start();  
+                          		}else{
+                          			wMap.put(uuid, waveLocal);
+                          		}
+                      		}
+                        	
                     	}else if(token.contains("EXIT")){
                     		// client leaves
                     		System.out.println("Connection shutdown."); 
@@ -542,6 +582,47 @@ public class Main {
             }             
         }
         
+        public class AudioTask implements Runnable{
+        	private Wave waveRemote, waveLocal;
+        	private String uuid, aUuid;
+        	final float[] trimSeconds = {10, 5, 4, 3, 2, 1};
+        	
+        	public AudioTask(Wave wave1, String uuid, String aUuid){
+        		super();
+        		this.waveLocal = wave1;
+        		this.waveRemote = wMap.get(aUuid);
+        		this.uuid = uuid;
+        		this.aUuid = aUuid;
+        	}
+        	
+    		@Override
+    		public void run() {
+    			// TODO Auto-generated method stub
+    			if(waveRemote.length() > 0 && waveLocal.length() > 0){
+      	  			for(int i = 0; i < 6; i++){
+      	  				if(waveRemote.length() > trimSeconds[i]){
+      	  					waveRemote.rightTrim(waveRemote.length() - trimSeconds[i]);
+      	  				}
+      	  				if(waveLocal.length() > trimSeconds[i]){
+      	  					waveLocal.rightTrim(waveLocal.length()  - trimSeconds[i]);
+      	  				}
+      	  				
+      	  				XCorrAndDistFromWav xCorrAndDistFromWav = new XCorrAndDistFromWav(waveRemote, waveLocal);
+      	  				fp += xCorrAndDistFromWav.getMaxCorr()+"#"+xCorrAndDistFromWav.getDist()+"#";
+      	  				
+      	  			}
+      	  		}
+    			wMap.remove(uuid);
+      			wMap.remove(aUuid);
+      			msgObj.clear();                    			
+            	msgObj.put("id", "SEND");
+            	msgObj.put("wavefp", fp);
+            	String msg = gson.toJson(msgObj);
+            	sendBackMsg(msg);
+            	fp = "";
+    		}
+        	
+        }
         
       /** 
        * Iterate client set，and send msgs to all clients 
@@ -564,6 +645,8 @@ public class Main {
         } 
        }  */
     }      
+    
+    
     
     	
 }  
