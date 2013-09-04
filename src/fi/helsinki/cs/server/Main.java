@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.net.ServerSocket;  
 import java.net.Socket;  
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;  
 import java.util.concurrent.Executors;  
@@ -30,6 +31,7 @@ public class Main {
     private static HashMap<String,Device> dMap = new HashMap<String,Device>();
     private static HashMap<String,Socket> sMap = new HashMap<String,Socket>();
     private static HashMap<String,Wave> wMap = new HashMap<String,Wave>();
+    //private static HashMap<String,String> aMap = new HashMap<String,String>();
     
     private ServerSocket serverSocket = null;  
     private ExecutorService mExecutorService = null; //thread pool  
@@ -73,7 +75,7 @@ public class Main {
         private String msg;  
         private HashMap<String,String> msgObj;
         private Type mapType;
-        private String fp;
+        //private String fp;
         
         public ThreadService(Device device) {  
         	this.client = device;
@@ -81,7 +83,7 @@ public class Main {
             client.setSocket(socket);
             this.in = null;
             this.msg = "";
-            this.fp = "";
+            //this.fp = "";
             this.mapType = new TypeToken<HashMap<String,String>>(){}.getType();
             this.msgObj = new HashMap<String,String>();
             try {  
@@ -344,6 +346,11 @@ public class Main {
                     		String aUuid = db.getAUuid(uuid);
                     		//Socket so = getSocket(aUuid);
                     		
+                    		/*client.setRole(true);
+                    		if(dMap.containsKey(aUuid)){
+                    			dMap.get(aUuid).setRole(false);
+                    		}*/
+                    		
                     		System.out.println("Peer client found: "+dMap.containsKey(aUuid));
                     		System.out.println("Peer socket found: "+sMap.containsKey(aUuid));
                     		boolean sta = false;
@@ -395,6 +402,11 @@ public class Main {
                     			}
                     		}
                     		if(sta){
+                    			client.setRole(false);
+                        		if(dMap.containsKey(aUuid)){
+                        			dMap.get(aUuid).setRole(true);
+                        		}
+                        		
                     			msgObj.clear();                    			
                             	msgObj.put("id", "ACK_TASK");
                             	//msgObj.put("dt", "0");
@@ -477,8 +489,28 @@ public class Main {
                       		Wave waveLocal = new Wave(waveHeaderRemote, dataRemote);
                       		
                       		if(aUuid != ""){
-                      			if(wMap.containsKey(aUuid)){                          			
-                          			new Thread(new AudioTask(waveLocal, uuid, aUuid)).start();  
+                      			if(wMap.containsKey(aUuid)){       
+                      				//String nUuid = (client.getRole())?aUuid:uuid;
+                      				new Thread((new AudioTask(waveLocal, wMap.get(aUuid), uuid, aUuid))).start();
+                      				/*boolean flag = false;
+                      				while(flag){
+                      					Thread.sleep(1000);
+                      					if(aMap.containsKey(nUuid)){
+                      						if(aMap.get(nUuid) != ""){
+                      							flag = true;
+                      							msgObj.clear();                    			
+                      				        	msgObj.put("id", "SEND");
+                      				        	msgObj.put("wavefp", fp);
+                      				        	String msg = gson.toJson(msgObj);
+                      				        	if(!client.getRole()){
+                      				        		sendBackMsg(msg);
+                      				        	}else{
+                      				        		sendMsg(msg,aUuid);
+                      				        	}
+                      				        	aMap.remove(nUuid);
+                      						}
+                      					}
+                      				}*/
                           		}else{
                           			wMap.put(uuid, waveLocal);
                           		}
@@ -585,21 +617,25 @@ public class Main {
         public class AudioTask implements Runnable{
         	private Wave waveRemote, waveLocal;
         	private String uuid, aUuid;
-        	final float[] trimSeconds = {10, 5, 4, 3, 2, 1};
+        	private String fp;
+        	final DecimalFormat df1 = new DecimalFormat("#.######");
+        	final DecimalFormat df2 = new DecimalFormat("#.####");
+        	final float[] trimSeconds = {10, 5};
         	
-        	public AudioTask(Wave wave1, String uuid, String aUuid){
+        	public AudioTask(Wave wave1, Wave wave2, String uuid, String aUuid){
         		super();
         		this.waveLocal = wave1;
-        		this.waveRemote = wMap.get(aUuid);
+        		this.waveRemote = wave2;
         		this.uuid = uuid;
         		this.aUuid = aUuid;
+        		this.fp = "";
         	}
         	
     		@Override
     		public void run() {
     			// TODO Auto-generated method stub
     			if(waveRemote.length() > 0 && waveLocal.length() > 0){
-      	  			for(int i = 0; i < 6; i++){
+      	  			for(int i = 0; i < 2; i++){
       	  				if(waveRemote.length() > trimSeconds[i]){
       	  					waveRemote.rightTrim(waveRemote.length() - trimSeconds[i]);
       	  				}
@@ -608,18 +644,21 @@ public class Main {
       	  				}
       	  				
       	  				XCorrAndDistFromWav xCorrAndDistFromWav = new XCorrAndDistFromWav(waveRemote, waveLocal);
-      	  				fp += xCorrAndDistFromWav.getMaxCorr()+"#"+xCorrAndDistFromWav.getDist()+"#";
+      	  				fp += df1.format(xCorrAndDistFromWav.getMaxCorr())+"#"+df2.format(xCorrAndDistFromWav.getDist())+"#";
       	  				
       	  			}
       	  		}
     			wMap.remove(uuid);
       			wMap.remove(aUuid);
       			msgObj.clear();                    			
-            	msgObj.put("id", "SEND");
-            	msgObj.put("wavefp", fp);
-            	String msg = gson.toJson(msgObj);
-            	sendBackMsg(msg);
-            	fp = "";
+    	        	msgObj.put("id", "SEND");
+    	        	msgObj.put("wavefp", fp);
+    	        	String msg = gson.toJson(msgObj);
+    	        	if(!client.getRole()){
+    	        		sendBackMsg(msg);
+    	        	}else{
+    	        		sendMsg(msg,aUuid);
+    	        	}
     		}
         	
         }

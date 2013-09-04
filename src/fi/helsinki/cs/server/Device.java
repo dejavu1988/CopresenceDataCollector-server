@@ -15,6 +15,7 @@ public class Device {
 	private long ts;
 	private String ver;
 	//private int gt;
+	private boolean role;
 	
 	public Device(){
 		this.uuid = "";
@@ -26,6 +27,7 @@ public class Device {
 		this.ts = System.currentTimeMillis();
 		this.ver = "";
 		//this.gt = 0;
+		//this.role = false;
 	}
 	
 	public Device(Device device){
@@ -38,6 +40,7 @@ public class Device {
 		this.ts = device.getTS();
 		this.ver = device.getVer();
 		//this.gt = device.getGT();
+		//this.role = device.getRole();
 	}
 	
 	/*public int getGT(){
@@ -47,6 +50,13 @@ public class Device {
 	public void setGT(int gt){
 		this.gt = gt;
 	}*/
+	public boolean getRole(){
+		return this.role;
+	}
+	
+	public void setRole(boolean role){
+		this.role = role;
+	}
 	
 	public InetAddress getIpAddress(){
 		return this.ipAddress;
