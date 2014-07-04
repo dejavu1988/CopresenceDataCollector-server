@@ -1,0 +1,80 @@
+Install
+
+1. Remember to install dev packages like gcc:
+	yum groupinstall "Development tools"
+2. Create a package:
+	mkdir /package
+	cd /package
+3. Download and unzip daemontools:
+	wget http://cr.yp.to/daemontools/daemontools-0.76.tar.gz
+	tar xvfz daemontools-0.76.tar.gz
+	mv admin/daemontools-0.76.
+	rmdir admin
+	cd daemontools-0.76
+4. Patch and install:
+	wget http://www.nslabs.jp/archives/daemontools-0.76-q1.diff
+	patch -s -p1 <daemontools-0.76-q1.diff
+	package/install
+5. Create file in /etc/init/svscanboot.conf
+	start on startup
+	respawn	
+	exec /command/svscanboot start
+ 
+Deploy
+
+6. In /service dir, create your subdir for service, e.g., dcserver. Remember to grant permission:
+	mkdir dcserver
+	chmod 1755 dcserver
+7. In subdir, create a run script (./run) that will be executed on boot by supervise:
+	#!/bin/sh
+	echo Running service
+	exec some-command-here
+
+8. Restart machine.
+
+Supervise
+
+9. Now you can check running service from ps -ef. Find from references the usage of svc commands. Note that all commands locates in /command dir.
+Often used commands:
+	svstat service : check status of supervise
+	svc -u service : start/restart service
+	svc -d service : ask not to restart if terminated, used with -t opt
+	svc -t service : terminate service
+
+References
+
+http://cr.yp.to/daemontools.html
+http://isotope11.com/blog/manage-your-services-with-daemontools
+http://blog.rtwilson.com/how-to-set-up-a-simple-service-to-run-in-the-background-on-a-linux-machine-using-daemontools/
+http://makeitsmartjp.com/2011/09/ec2-daemontools.html
+http://kaztr.hatenadiary.com/entry/2012/10/08/232717
+ 
+Example
+
+1. Instaall daemontools as instruction part 1 above.
+2. In /home/ec2-user/dcserver/ dir, create run script (create a logdir beforehand):
+	#!/bin/sh
+	echo Running server service...
+	exec java -server -jar testserver.v0.1a15-1.jar 2>&1 | multilog s2000000 n10 t ./logdir
+
+Then, chmod 755 run
+
+3. sudo ln -s  /home/ec2-user/dcserver/ /service/
+4. Logging service: in dcserver dir, mkdir log and log/main, then
+	adduser logger
+	chown logger /home/ec2-user/dcserver/log/main
+In log dir, create run script:
+	#!/bin/sh
+	exec setuidgid multilog t ./main
+	
+Then, chmod 755 run
+When running, errors will be logged in log/main/current
+
+5. Use following cmd to control svc:
+	sudo /command/svc -d /service/dcserver
+	sudo /command/svc -t /service/dcserver
+	sudo /command/svc -u /service/dcserver
+	sudo /command/svstat /service/dcserver
+Ref: http://isotope11.com/blog/manage-your-services-with-daemontools
+
+adduser logger mkdir /services/somerandomservice/log mkdir /services/somerandomservice/log/main chown logger /services/somerandomservice/log/main ed /services/somerandomservice/log/run a #!/bin/sh exec setuidgid logger multilog t ./main . w !chmod 755 % q - See more at: http://isotope11.com/blog/manage-your-services-with-daemontools#sthash.gQeyYkaf.dpuf
