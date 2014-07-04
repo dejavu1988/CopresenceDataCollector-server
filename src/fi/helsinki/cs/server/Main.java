@@ -1,5 +1,9 @@
 package fi.helsinki.cs.server;
-
+/**
+ * Server (tcp connection) for handling copresencedatacollector connections.
+ * @author xzgao
+ *
+ */
 import java.io.BufferedReader;  
 import java.io.BufferedWriter;  
 import java.io.IOException;  
@@ -23,10 +27,11 @@ import com.musicg.wave.Wave;
 import com.musicg.wave.WaveHeader;
 
 import fi.helsinki.cs.audio.XCorrAndDistFromWav;
-  
+
   
 public class Main {  
 	
+	// Data structures to record current active connections
     //private List<Device> dList = new ArrayList<Device>();  
     private static HashMap<String,Device> dMap = new HashMap<String,Device>();
     private static HashMap<String,Socket> sMap = new HashMap<String,Socket>();
@@ -599,6 +604,7 @@ public class Main {
             }             
         }
         
+        //send msg to socket
         public void sendNewMsg(String msg, String uuid) {  
             System.out.println(msg);             
             
@@ -614,6 +620,11 @@ public class Main {
             }             
         }
         
+        /**
+         * To relay raw audio wav to its peer for further feature extraction.
+         * @author xzgao
+         *
+         */
         public class AudioTask implements Runnable{
         	private Wave waveRemote, waveLocal;
         	private String uuid, aUuid;

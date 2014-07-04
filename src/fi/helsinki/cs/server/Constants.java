@@ -1,5 +1,9 @@
 package fi.helsinki.cs.server;
-
+/**
+ * Constants parameters
+ * @author xzgao
+ *
+ */
 public final class Constants {
 	
 	// Device status

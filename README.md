@@ -18,7 +18,7 @@ This README would normally document whatever steps are necessary to get your ser
 * Configuration
     - All parameters are configured in `Constants.java`: `SERVER_INET` and `SERVER_PORT` for server address, and `DB_LOCAL` for database path.
 * Dependencies (`libs/`)
-    - JavaSE 6 environment
+    - JavaSE-1.6 environment
     - Apache server: httpd, php3, sqlite3
     - [Gson](https://code.google.com/p/google-gson/)
     - [Apache Commons libs](https://commons.apache.org/): commons-codec, commons-math
@@ -39,3 +39,6 @@ This README would normally document whatever steps are necessary to get your ser
 
 * Repo owner or admin: Xiang Gao (rekygx@gmail.com)
 * Team contact: Hien Truong (hien.truong@cs.helsinki.fi or truongthithuhien@gmail.com)
+
+### Future plan ###
+* Replace the socket server with RabbitMQ.
